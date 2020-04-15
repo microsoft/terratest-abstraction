@@ -6,23 +6,46 @@ This Go package offers abstractions over the popular [Terratest](https://github.
 
 Teams that rely on automated deployments of any kind demand robust automated validation of those environments in order to have confidence in changes. The results of these automated changes will allow software and operations engineers to sleep well at night, knowing that large classes of defects will be caught by repeatable and automated checks against their runtime systems. These concepts apply equally to software and infrastructure deployments.
 
-`TerratestAbstraction` offers an intuitive interface to testing Terraform deployments that offers a more declarative approach to writing test cases. There is support for testing the [Terraform Plan](https://www.terraform.io/docs/commands/plan.html) as a *pre-deployment unit test* and [Terraform Output](https://www.terraform.io/docs/commands/output.html) as a *post-deployment integration test*.
+`terratestabstraction` offers an intuitive interface to testing Terraform deployments that offers a more declarative approach to writing test cases. There is support for testing the [Terraform Plan](https://www.terraform.io/docs/commands/plan.html) as a *pre-deployment unit test* and [Terraform Output](https://www.terraform.io/docs/commands/output.html) as a *post-deployment integration test*.
 
 
 ## Getting started
 
-**Importing the library**
-
-The package can be imported (like any other go package) by adding an import statement to your test file:
-
-```go
-```
-
 **Writing unit tests**
+
+A full example unit test is included in the `samples` directory. Check out [`unit_test.go`](samples/azure/tests/unit/unit_test.go) to see a unit test for the included sample [`main.tf`](samples/azure/main.tf). The included [`README.md`](samples/azure/README.md) provides instructions for running this example.
 
 **Writing integration tests**
 
+A full example integration test is included in the `samples` directory. Check out [`integration_test.go`](samples/azure/tests/integration/integration_test.go) to see a unit test for the included sample [`main.tf`](samples/azure/main.tf). The included [`README.md`](samples/azure/README.md) provides instructions for running this example.
+
 **Automating in CICD pipelines**
+
+Tests written with `terratestabstraction` can be invoked like any other Golang test. We recommend separating unit and integration tests so that they can be easily targeted at build and deploy time within an automated CICD pipeline. The [`samples`](./samples) all follow this structure:
+
+```bash
+$ tree
+├── README.md
+├── main.tf             # other terraform files live here
+└── tests
+    ├── commons.go      # common test code lives here
+    ├── integration     # integration tests live here
+    └── unit            # unit tests live here
+```
+
+If you follow this structure, then it is easy to invoke tests written with `terratestabstraction` using the following commands:
+
+*Unit Tests*
+```bash
+# before executing `terraform plan`
+go test -v $(go list ./... | grep unit)
+```
+
+*Integration Tests*
+```bash
+# after executing `terraform apply`
+go test -v $(go list ./... | grep integration)
+```
 
 
 # Contributing
