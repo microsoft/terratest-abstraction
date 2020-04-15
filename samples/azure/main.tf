@@ -12,15 +12,15 @@ provider "azurerm" {
 # Variables
 ##
 variable "resource_group_name" {
-    type        = string
-    default     = "MyTestResourceGroup"
-    description = "Name of resource group to create"
+  type        = string
+  default     = "MyTestResourceGroup"
+  description = "Name of resource group to create"
 }
 
 variable "resource_group_location" {
-    type        = string
-    default     = "Central US"
-    description = "Name of resource group to create"
+  type        = string
+  default     = "Central US"
+  description = "Name of resource group to create"
 }
 
 
