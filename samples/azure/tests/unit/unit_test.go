@@ -27,6 +27,27 @@ func TestTemplateUnit(t *testing.T) {
 			"resource_group_name": "MyTestResourceGroup"
 		}`),
 		"azurerm_virtual_network.vnet": tests.AsMap(t, `{
+			"resource_group_name": "MyTestResourceGroup",
+			"name":                "virtualNetwork1",
+			"tags": {
+				"environment": "production"
+			},
+			"address_space": [
+				"10.0.0.0/16"
+			],
+			"dns_servers": [
+				"10.0.0.4",
+				"10.0.0.5"
+			],
+			"subnet": [
+				{
+					"address_prefix": "10.0.1.0/24",
+					"name":           "MyTestSubnet1"
+				},{
+					"address_prefix": "10.0.3.0/24",
+					"name":           "MyTestSubnet2"
+				}
+			]
 		}`),
 	}
 
