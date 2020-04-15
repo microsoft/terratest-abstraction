@@ -13,11 +13,11 @@
 //  limitations under the License.
 
 /*
-Package infratests This file provides abstractions that simplify the process of integration-testing terraform templates. The goal
+Package integration This file provides abstractions that simplify the process of integration-testing terraform templates. The goal
 is to minimize the boiler plate code required to effectively test terraform templates in order to reduce
 the effort required to write robust template integration-tests.
 */
-package infratests
+package integration
 
 import (
 	"encoding/json"

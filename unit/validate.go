@@ -13,9 +13,9 @@
 //  limitations under the License.
 
 /*
-Package infratests This file provides validation utilities that can be used by the core testing constructs
+Package unit This file provides validation utilities that can be used by the core testing constructs
 */
-package infratests
+package unit
 
 import (
 	"fmt"

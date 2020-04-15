@@ -13,11 +13,11 @@
 //  limitations under the License.
 
 /*
-Package infratests this file provides a model for the JSON representation of a terraform plan. It describes
+Package unit this file provides a model for the JSON representation of a terraform plan. It describes
 a minimal set of metadata produced by the plan and can be expanded to support other attributes
 if needed
 */
-package infratests
+package unit
 
 // TerraformPlan a JSON schema for the output of `terraform plan <planfile>`
 type TerraformPlan struct {
