@@ -1,10 +1,10 @@
 # Terratest Abstraction
 
-This Go package offers abstractions over the popular [Terratest](https://github.com/gruntwork-io/terratest) library in order to abstract some common testing patterns that have been identified through multiple projects that deploying [Infrastructure as Code](https://docs.microsoft.com/en-us/azure/devops/learn/what-is-infrastructure-as-code) (*IAC*) using [Terraform](https://www.terraform.io/). The abstractions offered here can be used along side existing Terratest code and are quite easy to drop into existing projects. Feedback and OSS contributions are welcome!
+This Go package offers abstractions over the popular [Terratest](https://github.com/gruntwork-io/terratest) library in order to abstract some common testing patterns that have been identified through multiple projects that deploy [Infrastructure as Code](https://docs.microsoft.com/en-us/azure/devops/learn/what-is-infrastructure-as-code) (*IAC*) using [Terraform](https://www.terraform.io/). The abstractions offered here can be used along side existing Terratest code and are quite easy to drop into existing projects. Feedback and OSS contributions are welcome!
 
 ## When to use?
 
-Teams that rely on automated deployments of any kind demand robust automated validation of those environments in order to have confidence in changes. The results of these automated changes will allow software and operations engineers to sleep well at night, knowing that large classes of defects will be caught by repeatable and automated checks against their runtime systems. These concepts apply equally to software and infrastructure deployments.
+Development teams that rely on automated deployments of any kind demand robust automated validation of those environments in order to have confidence in changes. The results of these automated changes will allow software and operations engineers to sleep well at night, knowing that large classes of defects will be caught by repeatable and automated checks against their runtime systems. These concepts apply equally to software and infrastructure deployments.
 
 `terratestabstraction` offers an intuitive interface to testing Terraform deployments that offers a more declarative approach to writing test cases. There is support for testing the [Terraform Plan](https://www.terraform.io/docs/commands/plan.html) as a *pre-deployment unit test* and [Terraform Output](https://www.terraform.io/docs/commands/output.html) as a *post-deployment integration test*.
 
