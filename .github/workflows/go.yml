@@ -31,7 +31,10 @@ jobs:
         fi
 
     - name: Build
-      run: go build -v .
+      run: go build -v ./...
 
     - name: Test
       run: go test -v ./...
+
+      - name: Build Samples
+      run: (cd samples && go build -v ./...)
