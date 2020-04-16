@@ -2,7 +2,7 @@ package tests
 
 import (
 	"encoding/json"
-	    "testing"
+	"testing"
 
 	"github.com/gruntwork-io/terratest/modules/terraform"
 )
