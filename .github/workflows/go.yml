@@ -36,5 +36,5 @@ jobs:
     - name: Test
       run: go test -v ./...
 
-      - name: Build Samples
+    - name: Build Samples
       run: (cd samples && go build -v ./...)
