@@ -4,7 +4,7 @@ import (
 	"samples/azure/tests"
 	"testing"
 
-	"github.com/microsoft/terratestabstraction/unit"
+	"github.com/microsoft/terratest-abstraction/unit"
 )
 
 func TestTemplateUnit(t *testing.T) {

@@ -13,7 +13,7 @@ import (
 	"github.com/Azure/go-autorest/autorest/adal"
 	"github.com/Azure/go-autorest/autorest/azure"
 
-	"github.com/microsoft/terratestabstraction/integration"
+	"github.com/microsoft/terratest-abstraction/integration"
 	"github.com/stretchr/testify/require"
 )
 

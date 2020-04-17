@@ -6,7 +6,7 @@ This Go package offers abstractions over the popular [Terratest](https://github.
 
 Development teams that rely on automated deployments of any kind demand robust automated validation of those environments in order to have confidence in changes. The results of these automated changes will allow software and operations engineers to sleep well at night, knowing that large classes of defects will be caught by repeatable and automated checks against their runtime systems. These concepts apply equally to software and infrastructure deployments.
 
-`terratestabstraction` offers an intuitive interface to testing Terraform deployments that offers a more declarative approach to writing test cases. There is support for testing the [Terraform Plan](https://www.terraform.io/docs/commands/plan.html) as a *pre-deployment unit test* and [Terraform Output](https://www.terraform.io/docs/commands/output.html) as a *post-deployment integration test*.
+`terratest-abstraction` offers an intuitive interface to testing Terraform deployments that offers a more declarative approach to writing test cases. There is support for testing the [Terraform Plan](https://www.terraform.io/docs/commands/plan.html) as a *pre-deployment unit test* and [Terraform Output](https://www.terraform.io/docs/commands/output.html) as a *post-deployment integration test*.
 
 
 ## Getting started
@@ -21,7 +21,7 @@ A full example integration test is included in the `samples` directory. Check ou
 
 **Automating in CICD pipelines**
 
-Tests written with `terratestabstraction` can be invoked like any other Golang test. We recommend separating unit and integration tests so that they can be easily targeted at build and deploy time within an automated CICD pipeline. The [`samples`](./samples) all follow this structure:
+Tests written with `terratest-abstraction` can be invoked like any other Golang test. We recommend separating unit and integration tests so that they can be easily targeted at build and deploy time within an automated CICD pipeline. The [`samples`](./samples) all follow this structure:
 
 ```bash
 $ tree
@@ -33,7 +33,7 @@ $ tree
     └── unit            # unit tests live here
 ```
 
-If you follow this structure, then it is easy to invoke tests written with `terratestabstraction` using the following commands:
+If you follow this structure, then it is easy to invoke tests written with `terratest-abstraction` using the following commands:
 
 *Unit Tests*
 ```bash
