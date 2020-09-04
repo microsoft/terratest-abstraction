@@ -49,29 +49,29 @@ func RunIntegrationTests(fixture *IntegrationTestFixture) {
 //	- Run any user-supplied assertions over the output
 func validateTerraformOutput(fixture *IntegrationTestFixture, output TerraformOutput) {
 	fixture.GoTest.Run("Terraform Output Count", func(t *testing.T) {
-		validateTerraformOutputCount(fixture, output)
+		validateTerraformOutputCount(t, fixture, output)
 	})
 
 	fixture.GoTest.Run("Terraform Output Key Values", func(t *testing.T) {
-		validateTerraformOutputKeyValues(fixture, output)
+		validateTerraformOutputKeyValues(t, fixture, output)
 	})
 
 	// run user-provided assertions over the TF output
 	for i, outputAssertion := range fixture.TfOutputAssertions {
 		fixture.GoTest.Run(fmt.Sprintf("Custom Validation Function (%d)", i), func(t *testing.T) {
-			outputAssertion(fixture.GoTest, output)
+			outputAssertion(t, output)
 		})
 	}
 }
 
 // Validates that the terraform output contains the expected number of items
-func validateTerraformOutputCount(fixture *IntegrationTestFixture, output TerraformOutput) {
+func validateTerraformOutputCount(t *testing.T, fixture *IntegrationTestFixture, output TerraformOutput) {
 	if len(output) != fixture.ExpectedTfOutputCount {
-		fixture.GoTest.Fatal(fmt.Errorf(
+		t.Errorf(
 			"Output unexpectedly had %d entries instead of %d",
 			len(output),
 			fixture.ExpectedTfOutputCount,
-		))
+		)
 	}
 }
 
@@ -81,23 +81,23 @@ func validateTerraformOutputCount(fixture *IntegrationTestFixture, output Terraf
 //	- Handles comparison of generic data types automatically
 //	- Handles differences in key ordering for maps
 //	- Handles all handling of generics, which is tricky in Go
-func validateTerraformOutputKeyValues(fixture *IntegrationTestFixture, output TerraformOutput) {
+func validateTerraformOutputKeyValues(t *testing.T, fixture *IntegrationTestFixture, output TerraformOutput) {
 	for expectedKey, expectedValue := range fixture.ExpectedTfOutput {
 		actualValue, isFound := output[expectedKey]
 		if !isFound {
-			fixture.GoTest.Fatal(fmt.Errorf("Output unexpectedly did not contain key %s", expectedKey))
+			fixture.GoTest.Errorf("Output unexpectedly did not contain key %s", expectedKey)
 		}
 
 		expectedAsJSON := jsonOrFail(fixture, expectedValue)
 		actualAsJSON := jsonOrFail(fixture, actualValue)
 
 		if expectedAsJSON != actualAsJSON {
-			fixture.GoTest.Fatal(fmt.Errorf(
+			t.Errorf(
 				"Output value for '%s' was expected to be '%s' but was '%s'",
 				expectedKey,
 				expectedAsJSON,
 				actualAsJSON,
-			))
+			)
 		}
 	}
 }
