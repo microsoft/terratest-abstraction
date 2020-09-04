@@ -48,12 +48,19 @@ func RunIntegrationTests(fixture *IntegrationTestFixture) {
 //	- The output has the correct number of items
 //	- Run any user-supplied assertions over the output
 func validateTerraformOutput(fixture *IntegrationTestFixture, output TerraformOutput) {
-	validateTerraformOutputCount(fixture, output)
-	validateTerraformOutputKeyValues(fixture, output)
+	fixture.GoTest.Run("Terraform Output Count", func(t *testing.T) {
+		validateTerraformOutputCount(fixture, output)
+	})
+
+	fixture.GoTest.Run("Terraform Output Key Values", func(t *testing.T) {
+		validateTerraformOutputKeyValues(fixture, output)
+	})
 
 	// run user-provided assertions over the TF output
-	for _, outputAssertion := range fixture.TfOutputAssertions {
-		outputAssertion(fixture.GoTest, output)
+	for i, outputAssertion := range fixture.TfOutputAssertions {
+		fixture.GoTest.Run(fmt.Sprintf("Custom Validation Function (%d)", i), func(t *testing.T) {
+			outputAssertion(fixture.GoTest, output)
+		})
 	}
 }
 
