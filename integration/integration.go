@@ -67,7 +67,7 @@ func validateTerraformOutput(fixture *IntegrationTestFixture, output TerraformOu
 // Validates that the terraform output contains the expected number of items
 func validateTerraformOutputCount(t *testing.T, fixture *IntegrationTestFixture, output TerraformOutput) {
 	if len(output) != fixture.ExpectedTfOutputCount {
-		t.Errorf(
+		t.Fatalf(
 			"Output unexpectedly had %d entries instead of %d",
 			len(output),
 			fixture.ExpectedTfOutputCount,
@@ -85,14 +85,14 @@ func validateTerraformOutputKeyValues(t *testing.T, fixture *IntegrationTestFixt
 	for expectedKey, expectedValue := range fixture.ExpectedTfOutput {
 		actualValue, isFound := output[expectedKey]
 		if !isFound {
-			fixture.GoTest.Errorf("Output unexpectedly did not contain key %s", expectedKey)
+			fixture.GoTest.Fatalf("Output unexpectedly did not contain key %s", expectedKey)
 		}
 
 		expectedAsJSON := jsonOrFail(fixture, expectedValue)
 		actualAsJSON := jsonOrFail(fixture, actualValue)
 
 		if expectedAsJSON != actualAsJSON {
-			t.Errorf(
+			t.Fatalf(
 				"Output value for '%s' was expected to be '%s' but was '%s'",
 				expectedKey,
 				expectedAsJSON,
