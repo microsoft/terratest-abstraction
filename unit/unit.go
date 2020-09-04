@@ -166,7 +166,7 @@ func validatePlanResourceKeyValues(t *testing.T, fixture *UnitTestFixture, plan 
 	theExpectedPlanAsMap := resourceDescriptionToMap(fixture.ExpectedResourceAttributeValues)
 
 	if err := verifyTargetsExistInMap(theRealPlanAsMap, theExpectedPlanAsMap, ""); err != nil {
-		t.Fatal("", err)
+		t.Fatal(err)
 	}
 }
 
