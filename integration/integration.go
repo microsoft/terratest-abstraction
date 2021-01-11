@@ -23,6 +23,7 @@ type TerraformOutputValidation func(goTest *testing.T, output TerraformOutput)
 type IntegrationTestFixture struct {
 	GoTest                *testing.T                  // Go test harness
 	TfOptions             *terraform.Options          // Terraform options
+	SkipInit              bool                        // Skip running `terraform init` command when the working directory is already initialized
 	ExpectedTfOutputCount int                         // Expected # of resources that Terraform should create
 	ExpectedTfOutput      TerraformOutput             // Expected Terraform Output
 	TfOutputAssertions    []TerraformOutputValidation // user-defined plan assertions
@@ -30,12 +31,14 @@ type IntegrationTestFixture struct {
 
 // RunIntegrationTests Executes terraform lifecycle events and verifies the correctness of the resulting resources.
 // The following actions are coordinated:
-//	- Run `terraform init`
+//	- Optionally run `terraform init`
 //	- Run `terraform output`
 //	- Validate outputs
 //	- Run user-supplied validation of outputs
 func RunIntegrationTests(fixture *IntegrationTestFixture) {
-	terraform.Init(fixture.GoTest, fixture.TfOptions)
+	if !fixture.SkipInit {
+		terraform.Init(fixture.GoTest, fixture.TfOptions)
+	}
 	output := terraform.OutputAll(fixture.GoTest, fixture.TfOptions)
 	validateTerraformOutput(fixture, TerraformOutput(output))
 }
