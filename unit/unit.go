@@ -7,7 +7,6 @@ package unit
 
 import (
 	"encoding/json"
-	"errors"
 	"fmt"
 	"os"
 	"os/exec"
@@ -76,13 +75,29 @@ func RunUnitTests(fixture *UnitTestFixture) {
 //	- The plan passes any user-defined assertions
 func validateTerraformPlanFile(fixture *UnitTestFixture, tfPlanFilePath string) {
 	plan := parseTerraformPlan(fixture, tfPlanFilePath)
-	validatePlanCreateProperties(fixture, plan)
-	validatePlanResourceKeyValues(fixture, plan)
+
+	fixture.GoTest.Run("Terraform Plan Is Not Empty", func(t *testing.T) {
+		validatePlanNotEmpty(t, plan)
+	})
+
+	fixture.GoTest.Run("Terraform Plan Output Count", func(t *testing.T) {
+		validatePlanResourceCount(t, fixture, plan)
+	})
+
+	fixture.GoTest.Run("Terraform Plan Is Not Destructive", func(t *testing.T) {
+		validatePlanHasNoDeletes(t, plan)
+	})
+
+	fixture.GoTest.Run("Terraform Plan Key Values", func(t *testing.T) {
+		validatePlanResourceKeyValues(t, fixture, plan)
+	})
 
 	// run user-provided assertions
 	if fixture.PlanAssertions != nil {
-		for _, planAssertion := range fixture.PlanAssertions {
-			planAssertion(fixture.GoTest, plan)
+		for i, planAssertion := range fixture.PlanAssertions {
+			fixture.GoTest.Run(fmt.Sprintf("Custom Validation Function (%d)", i), func(t *testing.T) {
+				planAssertion(t, plan)
+			})
 		}
 	}
 }
@@ -116,27 +131,29 @@ func parseTerraformPlan(fixture *UnitTestFixture, filePath string) TerraformPlan
 	return plan
 }
 
-// Validates high level attributes of a terraform plan creat properties. This includes:
-//	- The plan is not empty
-//	- The plan contains the correct number of resources
-//	- The plan is not executing any destructive actions
-func validatePlanCreateProperties(fixture *UnitTestFixture, plan TerraformPlan) {
+// Validates that the plan is not empty
+func validatePlanNotEmpty(t *testing.T, plan TerraformPlan) {
 	if len(plan.ResourceChanges) == 0 {
-		fixture.GoTest.Fatal(errors.New("Plan diff was unexpectedly empty"))
+		t.Fatalf("Plan diff was unexpectedly empty")
 	}
+}
 
+// Validates that the plan has the correct number of resources in it
+func validatePlanResourceCount(t *testing.T, fixture *UnitTestFixture, plan TerraformPlan) {
 	if len(plan.ResourceChanges) != fixture.ExpectedResourceCount {
-		fixture.GoTest.Fatal(fmt.Errorf(
-			"Plan unexpectedly had %d resources instead of %d", len(plan.ResourceChanges), fixture.ExpectedResourceCount))
+		t.Fatalf(
+			"Plan unexpectedly had %d resources instead of %d", len(plan.ResourceChanges), fixture.ExpectedResourceCount)
 	}
+}
 
+// Validates that the plan is not executing any destructive actions
+func validatePlanHasNoDeletes(t *testing.T, plan TerraformPlan) {
 	// a unit test should never create a destructive action like deleting a resource
 	allowedActions := map[string]bool{"create": true, "read": true}
 	for _, resource := range plan.ResourceChanges {
 		for _, action := range resource.Change.Actions {
 			if !allowedActions[action] {
-				fixture.GoTest.Fatal(
-					fmt.Errorf("Plan unexpectedly actions other than `create`: %s", resource.Change.Actions))
+				t.Fatalf("Plan unexpectedly actions other than `create`: %s", resource.Change.Actions)
 			}
 		}
 	}
@@ -144,12 +161,12 @@ func validatePlanCreateProperties(fixture *UnitTestFixture, plan TerraformPlan) 
 
 // verifies that the attribute value mappings for each resource specified by the client exist
 // as a subset of the actual values defined in the terraform plan.
-func validatePlanResourceKeyValues(fixture *UnitTestFixture, plan TerraformPlan) {
+func validatePlanResourceKeyValues(t *testing.T, fixture *UnitTestFixture, plan TerraformPlan) {
 	theRealPlanAsMap := planToMap(plan)
 	theExpectedPlanAsMap := resourceDescriptionToMap(fixture.ExpectedResourceAttributeValues)
 
 	if err := verifyTargetsExistInMap(theRealPlanAsMap, theExpectedPlanAsMap, ""); err != nil {
-		fixture.GoTest.Fatal(err)
+		t.Fatal(err)
 	}
 }
 
