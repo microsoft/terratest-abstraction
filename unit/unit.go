@@ -24,6 +24,9 @@ type ResourceDescription map[string]map[string]interface{}
 // TerraformPlanValidation A function that can run an assertion over a terraform plan
 type TerraformPlanValidation func(goTest *testing.T, plan tfjson.Plan)
 
+// TerraformCommandStdoutValidation A function that can run an assertion over a terraform command output and exit code
+type TerraformCommandStdoutValidation func(goTest *testing.T, output string, err error)
+
 // UnitTestFixture Holds metadata required to execute a unit test against a test against a terraform template
 type UnitTestFixture struct {
 	GoTest                *testing.T         // Go test harness
@@ -32,7 +35,8 @@ type UnitTestFixture struct {
 	ExpectedResourceCount int // Expected # of resources that Terraform should create
 	// map of maps specifying resource <--> attribute <--> attribute value mappings
 	ExpectedResourceAttributeValues ResourceDescription
-	PlanAssertions                  []TerraformPlanValidation // user-defined plan assertions
+	PlanAssertions                  []TerraformPlanValidation          // user-defined plan assertions
+	CommandStdoutAssertions         []TerraformCommandStdoutValidation // user-defined command output assertions
 }
 
 // RunUnitTests Executes terraform lifecycle events and verifies the correctness of the resulting terraform.
@@ -61,13 +65,26 @@ func RunUnitTests(fixture *UnitTestFixture) {
 	defer terraform.WorkspaceSelectOrNew(fixture.GoTest, fixture.TfOptions, startingWorkspaceName)
 
 	tfPlanFilePath := filepath.FromSlash(fmt.Sprintf("%s/%s.plan", os.TempDir(), random.UniqueId()))
-	terraform.RunTerraformCommand(
+	defer os.Remove(tfPlanFilePath)
+
+	output, err := terraform.RunTerraformCommandE(
 		fixture.GoTest,
 		fixture.TfOptions,
 		terraform.FormatArgs(fixture.TfOptions, "plan", "-input=false", "-out", tfPlanFilePath)...)
-	defer os.Remove(tfPlanFilePath)
+	if err != nil {
+		validateTerraformCommandStdout(fixture, output, err)
+	} else {
+		validateTerraformPlanFile(fixture, tfPlanFilePath)
+	}
+}
 
-	validateTerraformPlanFile(fixture, tfPlanFilePath)
+// Validate a failed terraform command output and error
+func validateTerraformCommandStdout(fixture *UnitTestFixture, output string, err error) {
+	if fixture.CommandStdoutAssertions != nil {
+		for _, assertion := range fixture.CommandStdoutAssertions {
+			assertion(fixture.GoTest, output, err)
+		}
+	}
 }
 
 // Validates a terraform plan file based on the test fixture. The following validations are made:

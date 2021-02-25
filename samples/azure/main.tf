@@ -27,7 +27,12 @@ variable "resource_group_name" {
 variable "resource_group_location" {
   type        = string
   default     = "Central US"
-  description = "Name of resource group to create"
+  description = "Location of resource group to create"
+
+  validation {
+    condition     = can(regex("US", var.resource_group_location))
+    error_message = "The resource group must be in the US, containing \"US\"."
+  }
 }
 
 
