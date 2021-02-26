@@ -52,3 +52,4 @@ jobs:
 
     - name: Build Samples
       run: (cd samples && go build -v ./...)
+

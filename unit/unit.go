@@ -55,7 +55,9 @@ func RunUnitTests(fixture *UnitTestFixture) {
 		terraform.FormatArgs(fixture.TfOptions, "workspace", "show")...)
 
 	terraform.WorkspaceSelectOrNew(fixture.GoTest, fixture.TfOptions, workspaceName)
-	defer terraform.RunTerraformCommand(fixture.GoTest, fixture.TfOptions, "workspace", "delete", workspaceName)
+	if startingWorkspaceName != workspaceName {
+		defer terraform.RunTerraformCommand(fixture.GoTest, fixture.TfOptions, "workspace", "delete", workspaceName)
+	}
 	defer terraform.WorkspaceSelectOrNew(fixture.GoTest, fixture.TfOptions, startingWorkspaceName)
 
 	tfPlanFilePath := filepath.FromSlash(fmt.Sprintf("%s/%s.plan", os.TempDir(), random.UniqueId()))
