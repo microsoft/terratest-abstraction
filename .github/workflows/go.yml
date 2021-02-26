@@ -53,5 +53,3 @@ jobs:
     - name: Build Samples
       run: (cd samples && go build -v ./...)
 
-    - name: Unit Test Samples
-      run: (cd samples && go test -v $(go list ./... | grep unit))
