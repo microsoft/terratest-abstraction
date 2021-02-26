@@ -4,6 +4,7 @@ import (
 	"samples/azure/tests"
 	"testing"
 
+	"github.com/hashicorp/terraform-json"
 	"github.com/microsoft/terratest-abstraction/unit"
 )
 
@@ -61,6 +62,25 @@ func TestTemplateUnit(t *testing.T) {
 		TfOptions:                       tests.TfOptions,
 		ExpectedResourceCount:           expectedTerraformResourceCount,
 		ExpectedResourceAttributeValues: resourceDescription,
+	}
+
+	unit.RunUnitTests(&testFixture)
+}
+
+func TestPlanOutputs(t *testing.T) {
+
+	testFixture := unit.UnitTestFixture{
+		GoTest:                t,
+		TfOptions:             tests.TfOptions,
+		ExpectedResourceCount: 3,
+		PlanAssertions: []unit.TerraformPlanValidation{
+			func(t *testing.T, plan tfjson.Plan) {
+				change := plan.OutputChanges["resource_group_name"]
+				if change.After != "MyTestResourceGroup" {
+					t.Fatal("output validation failed")
+				}
+			},
+		},
 	}
 
 	unit.RunUnitTests(&testFixture)

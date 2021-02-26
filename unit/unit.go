@@ -15,13 +15,14 @@ import (
 
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
+	"github.com/hashicorp/terraform-json"
 )
 
 // ResourceDescription Identifies mappings between resources and attributes
 type ResourceDescription map[string]map[string]interface{}
 
 // TerraformPlanValidation A function that can run an assertion over a terraform plan
-type TerraformPlanValidation func(goTest *testing.T, plan TerraformPlan)
+type TerraformPlanValidation func(goTest *testing.T, plan tfjson.Plan)
 
 // UnitTestFixture Holds metadata required to execute a unit test against a test against a terraform template
 type UnitTestFixture struct {
@@ -102,7 +103,7 @@ func validateTerraformPlanFile(fixture *UnitTestFixture, tfPlanFilePath string) 
 	}
 }
 
-func parseTerraformPlan(fixture *UnitTestFixture, filePath string) TerraformPlan {
+func parseTerraformPlan(fixture *UnitTestFixture, filePath string) tfjson.Plan {
 	// Note: when the PR linked below is merged and the new build is used by this codebase,
 	// we can leverage Terratest to run this for us. Currently with large plan outputs,
 	// a buffer overflow will happen in Terratest because the default max character limit
@@ -123,7 +124,7 @@ func parseTerraformPlan(fixture *UnitTestFixture, filePath string) TerraformPlan
 	}
 
 	fmt.Println("Got terraform plan...", string(jsonBytes))
-	var plan TerraformPlan
+	var plan tfjson.Plan
 	jsonErr := json.Unmarshal(jsonBytes, &plan)
 	if jsonErr != nil {
 		fixture.GoTest.Fatal(jsonErr)
@@ -132,14 +133,14 @@ func parseTerraformPlan(fixture *UnitTestFixture, filePath string) TerraformPlan
 }
 
 // Validates that the plan is not empty
-func validatePlanNotEmpty(t *testing.T, plan TerraformPlan) {
+func validatePlanNotEmpty(t *testing.T, plan tfjson.Plan) {
 	if len(plan.ResourceChanges) == 0 {
 		t.Fatalf("Plan diff was unexpectedly empty")
 	}
 }
 
 // Validates that the plan has the correct number of resources in it
-func validatePlanResourceCount(t *testing.T, fixture *UnitTestFixture, plan TerraformPlan) {
+func validatePlanResourceCount(t *testing.T, fixture *UnitTestFixture, plan tfjson.Plan) {
 	if len(plan.ResourceChanges) != fixture.ExpectedResourceCount {
 		t.Fatalf(
 			"Plan unexpectedly had %d resources instead of %d", len(plan.ResourceChanges), fixture.ExpectedResourceCount)
@@ -147,9 +148,9 @@ func validatePlanResourceCount(t *testing.T, fixture *UnitTestFixture, plan Terr
 }
 
 // Validates that the plan is not executing any destructive actions
-func validatePlanHasNoDeletes(t *testing.T, plan TerraformPlan) {
+func validatePlanHasNoDeletes(t *testing.T, plan tfjson.Plan) {
 	// a unit test should never create a destructive action like deleting a resource
-	allowedActions := map[string]bool{"create": true, "read": true}
+	allowedActions := map[tfjson.Action]bool{tfjson.ActionCreate: true, tfjson.ActionRead: true}
 	for _, resource := range plan.ResourceChanges {
 		for _, action := range resource.Change.Actions {
 			if !allowedActions[action] {
@@ -161,7 +162,7 @@ func validatePlanHasNoDeletes(t *testing.T, plan TerraformPlan) {
 
 // verifies that the attribute value mappings for each resource specified by the client exist
 // as a subset of the actual values defined in the terraform plan.
-func validatePlanResourceKeyValues(t *testing.T, fixture *UnitTestFixture, plan TerraformPlan) {
+func validatePlanResourceKeyValues(t *testing.T, fixture *UnitTestFixture, plan tfjson.Plan) {
 	theRealPlanAsMap := planToMap(plan)
 	theExpectedPlanAsMap := resourceDescriptionToMap(fixture.ExpectedResourceAttributeValues)
 
@@ -171,7 +172,7 @@ func validatePlanResourceKeyValues(t *testing.T, fixture *UnitTestFixture, plan 
 }
 
 // transforms the output of `terraform show -json <planfile>` into a generic map
-func planToMap(plan TerraformPlan) map[string]interface{} {
+func planToMap(plan tfjson.Plan) map[string]interface{} {
 	mp := make(map[string]interface{})
 	for _, resource := range plan.ResourceChanges {
 		mp[resource.Address] = resource.Change.After
