@@ -7,7 +7,7 @@ import (
 )
 
 // the workspace cannot be deleted in the case that the "before" workspace is the same
-// as the one used for the test
+// as the one used for the test. If this test passes, then the behavior is correct
 func TestSupportForUnitTestWitNoWorkspaceChange(t *testing.T) {
 	tfOptions := &terraform.Options{
 		TerraformDir: "testing-tf/",
