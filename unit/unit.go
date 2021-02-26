@@ -71,9 +71,13 @@ func RunUnitTests(fixture *UnitTestFixture) {
 		fixture.GoTest,
 		fixture.TfOptions,
 		terraform.FormatArgs(fixture.TfOptions, "plan", "-input=false", "-out", tfPlanFilePath)...)
-	if err != nil {
+	if err != nil && fixture.CommandStdoutAssertions == nil {
+		fixture.GoTest.Fatal(err)
+	}
+	if fixture.CommandStdoutAssertions != nil {
 		validateTerraformCommandStdout(fixture, output, err)
-	} else {
+	}
+	if err == nil {
 		validateTerraformPlanFile(fixture, tfPlanFilePath)
 	}
 }
