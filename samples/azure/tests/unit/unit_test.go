@@ -2,10 +2,8 @@ package unittest
 
 import (
 	"samples/azure/tests"
-	"strings"
 	"testing"
 
-	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/hashicorp/terraform-json"
 	"github.com/microsoft/terratest-abstraction/unit"
 )
@@ -80,32 +78,6 @@ func TestPlanOutputs(t *testing.T) {
 				change := plan.OutputChanges["resource_group_name"]
 				if change.After != "MyTestResourceGroup" {
 					t.Fatal("output validation failed")
-				}
-			},
-		},
-	}
-
-	unit.RunUnitTests(&testFixture)
-}
-
-func TestTerraformCommandStdout(t *testing.T) {
-
-	testFixture := unit.UnitTestFixture{
-		GoTest: t,
-		TfOptions: &terraform.Options{
-			TerraformDir: "../../",
-			Upgrade:      true,
-			Vars: map[string]interface{}{
-				"resource_group_location": "Canada Central",
-			},
-		},
-		CommandStdoutAssertions: []unit.TerraformCommandStdoutValidation{
-			func(t *testing.T, output string, err error) {
-				if err == nil {
-					t.Fatal("should err")
-				}
-				if !strings.Contains(output, "Invalid value for variable") {
-					t.Fatal("should contain 'Invalid value for variable'")
 				}
 			},
 		},
