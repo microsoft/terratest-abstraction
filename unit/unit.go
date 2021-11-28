@@ -100,9 +100,11 @@ func validateTerraformCommandStdout(fixture *UnitTestFixture, output string, err
 func validateTerraformPlanFile(fixture *UnitTestFixture, tfPlanFilePath string) {
 	plan := parseTerraformPlan(fixture, tfPlanFilePath)
 
-	fixture.GoTest.Run("Terraform Plan Is Not Empty", func(t *testing.T) {
-		validatePlanNotEmpty(t, plan)
-	})
+	if fixture.ExpectedResourceCount > 0 {
+		fixture.GoTest.Run("Terraform Plan Is Not Empty", func(t *testing.T) {
+			validatePlanNotEmpty(t, plan)
+		})
+	}
 
 	fixture.GoTest.Run("Terraform Plan Output Count", func(t *testing.T) {
 		validatePlanResourceCount(t, fixture, plan)
