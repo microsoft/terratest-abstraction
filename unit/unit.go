@@ -213,3 +213,65 @@ func resourceDescriptionToMap(resources ResourceDescription) map[string]interfac
 	}
 	return mp
 }
+
+func HasModuleAddress(moduleAddress string) TerraformPlanValidation {
+	return func(t *testing.T, plan tfjson.Plan) {
+		t.Logf("Validating resouce with module address '%s' present in plan", moduleAddress)
+		var count int
+		for _, res := range plan.ResourceChanges {
+			if res != nil {
+				if res.ModuleAddress == moduleAddress {
+					count++
+					t.Logf("Found resource '%s' with module address '%s", res.Address, res.ModuleAddress)
+				}
+			}
+		}
+		if count == 0 {
+			t.Fatalf("Unexpectedly could not find module address '%s'", moduleAddress)
+		}
+	}
+}
+
+func HasDataSource(dataSourceAddress string) TerraformPlanValidation {
+	return func(t *testing.T, plan tfjson.Plan) {
+		t.Logf("Validating datasource with address '%s' present in plan", dataSourceAddress)
+		if priorState := plan.PriorState; priorState != nil {
+			if priorState.Values != nil && priorState.Values.RootModule != nil {
+				for _, res := range priorState.Values.RootModule.Resources {
+					if res != nil {
+						if res.Address == dataSourceAddress {
+							t.Logf("Found datasource '%s'", res.Address)
+							return
+						}
+					}
+				}
+			}
+		}
+		t.Fatalf("Unexpectedly could not find datasource address '%s'", dataSourceAddress)
+	}
+}
+
+func HasPriorStateResources(resources ResourceDescription) TerraformPlanValidation {
+	expectedPriorStateResources := resourceDescriptionToMap(resources)
+	return func(t *testing.T, plan tfjson.Plan) {
+		t.Log("Validating prior state resources present in plan")
+		realPlanAsMap := planPriorStateResourcesToMap(plan)
+		if err := verifyTargetsExistInMap(realPlanAsMap, expectedPriorStateResources, ""); err != nil {
+			t.Fatal(err)
+		}
+	}
+}
+
+func planPriorStateResourcesToMap(plan tfjson.Plan) map[string]interface{} {
+	mp := make(map[string]interface{})
+	if priorState := plan.PriorState; priorState != nil {
+		if priorState.Values != nil && priorState.Values.RootModule != nil {
+			for _, resource := range priorState.Values.RootModule.Resources {
+				if resource != nil {
+					mp[resource.Address] = resource.AttributeValues
+				}
+			}
+		}
+	}
+	return mp
+}
