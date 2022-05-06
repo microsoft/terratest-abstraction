@@ -13,10 +13,25 @@ import (
 	"path/filepath"
 	"testing"
 
+	"github.com/ghodss/yaml"
 	"github.com/gruntwork-io/terratest/modules/random"
 	"github.com/gruntwork-io/terratest/modules/terraform"
 	"github.com/hashicorp/terraform-json"
 )
+
+type RawResourceAttributeType int
+
+const (
+	JSON RawResourceAttributeType = iota
+	YAML
+)
+
+type RawResourceAttribute struct {
+	ResourceAddress       string
+	ResourceAttribute     string
+	ResourceAttributeType RawResourceAttributeType
+	Value                 map[string]interface{}
+}
 
 // ResourceDescription Identifies mappings between resources and attributes
 type ResourceDescription map[string]map[string]interface{}
@@ -35,6 +50,7 @@ type UnitTestFixture struct {
 	ExpectedResourceCount int // Expected # of resources that Terraform should create
 	// map of maps specifying resource <--> attribute <--> attribute value mappings
 	ExpectedResourceAttributeValues ResourceDescription
+	ExpectedRawResourceAttributes   []RawResourceAttribute
 	PlanAssertions                  []TerraformPlanValidation          // user-defined plan assertions
 	CommandStdoutAssertions         []TerraformCommandStdoutValidation // user-defined command output assertions
 }
@@ -118,6 +134,14 @@ func validateTerraformPlanFile(fixture *UnitTestFixture, tfPlanFilePath string) 
 		validatePlanResourceKeyValues(t, fixture, plan)
 	})
 
+	if fixture.ExpectedRawResourceAttributes != nil {
+		for i, attribute := range fixture.ExpectedRawResourceAttributes {
+			fixture.GoTest.Run(fmt.Sprintf("Terraform Resource Raw Attribute (%d)", i), func(t *testing.T) {
+				validateRawResourceAttributes(t, attribute, plan)
+			})
+		}
+	}
+
 	// run user-provided assertions
 	if fixture.PlanAssertions != nil {
 		for i, planAssertion := range fixture.PlanAssertions {
@@ -192,6 +216,36 @@ func validatePlanResourceKeyValues(t *testing.T, fixture *UnitTestFixture, plan 
 	theExpectedPlanAsMap := resourceDescriptionToMap(fixture.ExpectedResourceAttributeValues)
 
 	if err := verifyTargetsExistInMap(theRealPlanAsMap, theExpectedPlanAsMap, ""); err != nil {
+		t.Fatal(err)
+	}
+}
+
+func validateRawResourceAttributes(t *testing.T, raw RawResourceAttribute, plan tfjson.Plan) {
+	planAsMap := planToMap(plan)
+
+	v, ok := planAsMap[raw.ResourceAddress].(map[string]interface{})
+	if !ok {
+		t.Fatal()
+	}
+	attr, ok := v[raw.ResourceAttribute].(string)
+	if !ok {
+		t.Fatal()
+	}
+
+	var target map[string]interface{}
+	if raw.ResourceAttributeType == JSON {
+		err := json.Unmarshal([]byte(attr), &target)
+		if err != nil {
+			t.Fatal(err)
+		}
+	} else if raw.ResourceAttributeType == YAML {
+		err := yaml.Unmarshal([]byte(attr), &target)
+		if err != nil {
+			t.Fatal(err)
+		}
+	}
+
+	if err := verifyTargetsExistInMap(target, raw.Value, raw.ResourceAttribute); err != nil {
 		t.Fatal(err)
 	}
 }
