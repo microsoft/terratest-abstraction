@@ -19,7 +19,7 @@ func TestSupportForUnitTestWithNoWorkspaceChange(t *testing.T) {
 	testFixture := UnitTestFixture{
 		GoTest:                          t,
 		TfOptions:                       tfOptions,
-		ExpectedResourceCount:           3,
+		ExpectedResourceCount:           4,
 		ExpectedResourceAttributeValues: nil,
 		Workspace:                       "default",
 	}
@@ -35,7 +35,7 @@ func TestSupportForJSONRawResourceAttribute(t *testing.T) {
 	testFixture := UnitTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedResourceCount: 3,
+		ExpectedResourceCount: 4,
 		ExpectedRawResourceAttributes: []RawResourceAttribute{
 			{
 				ResourceAddress:   "local_file.json",
@@ -61,7 +61,7 @@ func TestSupportForYAMLRawResourceAttribute(t *testing.T) {
 	testFixture := UnitTestFixture{
 		GoTest:                t,
 		TfOptions:             tfOptions,
-		ExpectedResourceCount: 3,
+		ExpectedResourceCount: 4,
 		ExpectedRawResourceAttributes: []RawResourceAttribute{
 			{
 				ResourceAddress:       "local_file.yaml",
@@ -71,6 +71,33 @@ func TestSupportForYAMLRawResourceAttribute(t *testing.T) {
 					"length": 16,
 					"nested": {
 						"value": 16
+					}
+				}`),
+			},
+		},
+	}
+
+	RunUnitTests(&testFixture)
+}
+
+func TestSupportForRawResourceAttributeCollection(t *testing.T) {
+	tfOptions := &terraform.Options{
+		TerraformDir: test_structure.CopyTerraformFolderToTemp(t, "testing-tf/", "."),
+	}
+
+	testFixture := UnitTestFixture{
+		GoTest:                t,
+		TfOptions:             tfOptions,
+		ExpectedResourceCount: 4,
+		ExpectedRawResourceAttributes: []RawResourceAttribute{
+			{
+				ResourceAddress:       "helm_release.cert_manager",
+				ResourceAttribute:     "values",
+				ResourceAttributeType: YAML,
+				Value: jsonToMap(t, `{
+					"installCRDs": true,
+					"securityContext": {
+						"fsGroup": 1001
 					}
 				}`),
 			},

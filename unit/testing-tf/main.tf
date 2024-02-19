@@ -44,6 +44,23 @@ resource "local_file" "yaml" {
   })
 }
 
+locals {
+  helm_values = <<VALUES
+securityContext:
+  fsGroup: 1001
+installCRDs: true
+VALUES
+}
+
+resource "helm_release" "cert_manager" {
+  chart = "cert-manager"
+  repository = "https://charts.jetstack.io"
+  name = "cert-manager"
+  values = [
+    local.helm_values
+  ]
+}
+
 output "random_string_result" {
   value = random_string.s.result
 }

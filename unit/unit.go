@@ -57,10 +57,10 @@ type UnitTestFixture struct {
 
 // RunUnitTests Executes terraform lifecycle events and verifies the correctness of the resulting terraform.
 // The following actions are coordinated:
-//	- Run `terraform init`
-//	- Create new terraform workspace. This helps prevent accidentally deleting resources
-//	- Run `terraform plan`
-//	- Validate terraform plan file.
+//   - Run `terraform init`
+//   - Create new terraform workspace. This helps prevent accidentally deleting resources
+//   - Run `terraform plan`
+//   - Validate terraform plan file.
 func RunUnitTests(fixture *UnitTestFixture) {
 	terraform.Init(fixture.GoTest, fixture.TfOptions)
 
@@ -108,11 +108,11 @@ func validateTerraformCommandStdout(fixture *UnitTestFixture, output string, err
 }
 
 // Validates a terraform plan file based on the test fixture. The following validations are made:
-//	- The plan is only creating resources, and the number of resources created should match the
-//		parameters from the test fixture. The plan should only create resources because it should
-//		be brand new infrastructure on each PR cycle.
-//	- The resource <--> attribute <--> attribute value mappings match the parameters from the test fixture
-//	- The plan passes any user-defined assertions
+//   - The plan is only creating resources, and the number of resources created should match the
+//     parameters from the test fixture. The plan should only create resources because it should
+//     be brand new infrastructure on each PR cycle.
+//   - The resource <--> attribute <--> attribute value mappings match the parameters from the test fixture
+//   - The plan passes any user-defined assertions
 func validateTerraformPlanFile(fixture *UnitTestFixture, tfPlanFilePath string) {
 	plan := parseTerraformPlan(fixture, tfPlanFilePath)
 
@@ -227,26 +227,37 @@ func validateRawResourceAttributes(t *testing.T, raw RawResourceAttribute, plan 
 	if !ok {
 		t.Fatal()
 	}
-	attr, ok := v[raw.ResourceAttribute].(string)
-	if !ok {
-		t.Fatal()
+
+	var attributes []interface{}
+	switch v[raw.ResourceAttribute].(type) {
+	case string:
+		attributes = append(attributes, v[raw.ResourceAttribute].(string))
+	case []interface{}:
+		attributes = v[raw.ResourceAttribute].([]interface{})
 	}
 
-	var target map[string]interface{}
-	if raw.ResourceAttributeType == JSON {
-		err := json.Unmarshal([]byte(attr), &target)
-		if err != nil {
-			t.Fatal(err)
+	for _, attr := range attributes {
+		var target map[string]interface{}
+		_, ok := attr.(string)
+		if !ok {
+			t.Fatal()
 		}
-	} else if raw.ResourceAttributeType == YAML {
-		err := yaml.Unmarshal([]byte(attr), &target)
-		if err != nil {
-			t.Fatal(err)
-		}
-	}
 
-	if err := verifyTargetsExistInMap(target, raw.Value, raw.ResourceAttribute); err != nil {
-		t.Fatal(err)
+		if raw.ResourceAttributeType == JSON {
+			err := json.Unmarshal([]byte(attr.(string)), &target)
+			if err != nil {
+				t.Fatal(err)
+			}
+		} else if raw.ResourceAttributeType == YAML {
+			err := yaml.Unmarshal([]byte(attr.(string)), &target)
+			if err != nil {
+				t.Fatal(err)
+			}
+		}
+
+		if err := verifyTargetsExistInMap(target, raw.Value, raw.ResourceAttribute); err != nil {
+			t.Fatal(err)
+		}
 	}
 }
 
